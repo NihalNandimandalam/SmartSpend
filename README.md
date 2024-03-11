@@ -1,0 +1,2 @@
+# SmartSpend
+Distributed Computing Project
