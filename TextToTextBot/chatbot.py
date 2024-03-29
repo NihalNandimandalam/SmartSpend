@@ -54,7 +54,7 @@ def bag_of_words(sentence):
                 bag[i] = 1
     return np.array(bag)
 
-def predict_class(sentence):
+def predict_class(sentence, model):
     bow = bag_of_words(sentence)
     res = model.predict(np.array([bow]))[0]
     error_threshold = 0.25

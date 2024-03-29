@@ -112,9 +112,9 @@ import numpy as np
 import nltk
 from nltk.stem import WordNetLemmatizer
 
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Activation, Dropout
-from tensorflow.keras.optimizers import SGD
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Dropout
+from keras.optimizers import SGD
 
 lemmatizer = WordNetLemmatizer()
 
@@ -155,9 +155,10 @@ for document in documents:
     output_row[classes.index(document[1])] = 1
     train.append([bag, output_row])
 
-random.shuffle(train)
-train = np.array(train)
+print(train)
 
+random.shuffle(train)
+train = np.array(train).reshape(1,-1)
 train_x = list(train[:, 0])
 train_y = list(train[:, 1])
 
