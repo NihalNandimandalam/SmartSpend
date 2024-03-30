@@ -73,4 +73,3 @@ model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy
 
 h5model = model.fit(np.array(X_train), np.array(y_train), epochs=200, batch_size=5, verbose=1)
 model.save('chatbot.h5', h5model)
-print("Done")
