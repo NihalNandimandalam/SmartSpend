@@ -62,7 +62,8 @@ y_train=list(training[:, :len(words)])
 
 model = Sequential()
 
-model.add(Dense(128, input_shape=(len(X_train[0]),), activation='relu'))
+# model.add(Dense(128, input_shape=(len(X_train[0]),), activation='relu'))
+model.add(Dense(128, input_shape=(1,), activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 # model.add(Dropout(0.5))
