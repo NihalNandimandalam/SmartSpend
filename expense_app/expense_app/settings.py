@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "transcations.apps.TranscationsConfig",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -74,9 +75,13 @@ WSGI_APPLICATION = 'expense_app.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "expense_manager",
+        "USER": "root",
+        "PASSWORD": "12345678",
+        "HOST": "127.0.0.1",
+        "PORT": "3306",
     }
 }
 
