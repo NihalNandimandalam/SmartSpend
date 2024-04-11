@@ -93,7 +93,9 @@ def bag_of_words(sentence):
 def predict_class(sentence):
     bow = bag_of_words(sentence)
     # Reshape the bag-of-words vector to match the expected input shape of the model
-    res = model.predict(np.array([bow.reshape(1, -1)]))[0]
+    # res = model.predict(np.array([bow.reshape(1, -1)]))[0]
+    bow_reshaped = bow.reshape((-1, 1))
+    res = model.predict(bow_reshaped)[0]
 
     error_threshold = 0.25
     results = [[i, r] for i, r in enumerate(res) if r > error_threshold]
@@ -105,7 +107,7 @@ def predict_class(sentence):
     return return_list
 
 def get_response(intents_list, intents_json):
-    tag = intents_list[0]['intents']
+    tag = intents_list[0]['intent']
     list_of_intents = intents_json['intents']
     for i in list_of_intents:
         if i['tag'] == tag:
