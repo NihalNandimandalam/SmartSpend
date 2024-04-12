@@ -73,6 +73,17 @@
         </style>
     </head>
 <body>
+    <div class="header">
+        <a href="{% url 'display' %}" class="logo">Expese Manager</a>
+        <a href="">Hello, {{request.user}}</a>
+        <div class="header-right">
+          <a class="active" href="{% url 'display' %}">Home</a>
+          <a href="">Analysis</a>
+          <a href="">Finance</a>
+          <a href="">Loan</a>
+          <a href="">Logout</a>
+        </div>
+    </div> 
     <h3>Income: {{income}}</h3>
     <h3>Expense: {{expense}}</h3>
     <form method="POST">
@@ -104,7 +115,32 @@
         <!-- <button type="submit">New Filter</button> -->
         <input type="submit" value="Search">
 
-        
+        <hr>
+
+    <table class="sortable">
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <!-- <th>Balance</th> -->
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Tag</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for transaction in transactions_list %}
+        <tr>
+            <td>{{transaction.transaction_date.day}}/{{transaction.transaction_date.month}}/{{transaction.transaction_date.year}}</td>
+            <td>{{transaction.transaction_description}}</td>
+            <!-- <td>{{transaction.balance}}</td> -->
+            <td>{{transaction.amount}}</td>
+            <td>{{transaction.category}}</td>
+            <td>{{transaction.tag}}</td>
+            <td><a href="{% url 'update_transaction' transaction.transaction_id %}">Update</a></td>
+            <td><a href="{% url 'delete_transaction' transaction.transaction_id %}">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
     </form>
 </body>
 </html>
