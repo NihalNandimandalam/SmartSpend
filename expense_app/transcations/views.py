@@ -5,7 +5,7 @@ from django.contrib import messages
 from .models import Balance, Statements
 from django.db.models.functions import TruncMonth,TruncYear
 from django.db.models import F,Q, Sum
-
+from .forms import TransactionForm
 
 def index(request):
     return HttpResponse("Hello, world. You're at the View index.")
@@ -69,3 +69,33 @@ def display(request):
                     {"transactions_list":transactions_list,"unique_months":unique_month_list, "unique_years":unique_year_list,
                      "income":income, "expense":expense,"category_list":category_list})
 
+def new_transaction(request):
+    form = TransactionForm()
+    display_text = "Add new transaction"
+    if request.method == 'POST':
+        form = TransactionForm(request.POST)        
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.customer = request.user.customer
+            instance.save()
+            return redirect('display')
+    return render(request,"transcations/new_transaction.html",{"form":form, "display_text":display_text})
+
+def update_transaction(request, pk):
+    transaction = Balance.objects.get(transaction_id=pk)
+    form = TransactionForm(instance=transaction)
+    display_text = "Edit transaction"
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, instance=transaction)
+        if form.is_valid():
+            form.save()
+            return redirect('display')
+    return render(request,"transcations/new_transaction.html",{"form":form, "display_text":display_text})
+
+
+def delete_transaction(request, pk):
+    transaction = Balance.objects.get(transaction_id=pk)
+    if request.method =="POST":
+        transaction.delete()
+        return redirect('display')
+    return render(request, "transcations/delete.html",{"transaction":transaction})
