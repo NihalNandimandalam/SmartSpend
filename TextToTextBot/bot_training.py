@@ -15,6 +15,9 @@ from nltk.stem import WordNetLemmatizer
 
 lemmatizer=WordNetLemmatizer()
 
+nltk.download('punkt')
+nltk.download('wordnet')
+
 words=[]
 classes=[]
 documents=[]
@@ -48,17 +51,22 @@ for doc in documents:
     pattern= doc[0]
     pattern= [lemmatizer.lemmatize(word.lower()) for word in pattern]
     
-    for word in words: bag.append(1) if word in pattern else bag.append(0)
+    for word in words: bag.append(1) if word.lower() in pattern else bag.append(0)
     output_row=list(outputEmpty)
     output_row[classes.index(doc[1])]=1
     
-    training.append([bag + output_row])
+    training.append(bag + output_row)
     
 random.shuffle(training)
+
 training=np.array(training).reshape(-1,1)
 
 X_train=list(training[:, :len(words)])
 y_train=list(training[:, :len(words)])
+
+# training= np.array(training)
+# X_train= training[:, :len(words)]
+# y_train= training[:,len(words):]
 
 model = Sequential()
 

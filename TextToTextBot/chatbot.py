@@ -29,18 +29,17 @@ def bag_of_words(sentence):
                 bag[i] = 1
     return np.array(bag)
 
-def predict_class(sentence):
+def predict_class (sentence):
     bow = bag_of_words(sentence)
     bow_reshaped = bow.reshape((-1, 1))
     res = model.predict(bow_reshaped)[0]
-
-    error_threshold = 0.25
-    results = [[i, r] for i, r in enumerate(res) if r > error_threshold]
+    ERROR_THRESHOLD = 0.25
+    results = [[i, r] for i, r in enumerate(res) if r > ERROR_THRESHOLD]
 
     results.sort(key=lambda x: x[1], reverse=True)
-    return_list=[]
+    return_list = []
     for r in results:
-        return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
+        return_list.append({'intent': classes [r[0]], 'probability': str(r[1])})
     return return_list
 
 def get_response(intents_list, intents_json):
@@ -52,10 +51,10 @@ def get_response(intents_list, intents_json):
             break
     return result
 
-print("Bot is ruuning")
+print("Bot is running!")
 
 while True:
     message = input("")
     ints = predict_class(message)
-    res = get_response(ints, intents)
-    print(res)
+    res = get_response (ints, intents)
+    print (res)
