@@ -7,6 +7,8 @@ from django.db.models.functions import TruncMonth,TruncYear
 from django.db.models import F,Q, Sum
 from .forms import TransactionForm
 
+import pandas as pd
+
 def index(request):
     return HttpResponse("Hello, world. You're at the View index.")
 
@@ -99,3 +101,53 @@ def delete_transaction(request, pk):
         transaction.delete()
         return redirect('display')
     return render(request, "transcations/delete.html",{"transaction":transaction})
+
+def category_chart(request):
+    user_loggedin = request.user.customer
+    customer_list = Balance.objects.filter(customer = user_loggedin)
+
+    unique_months = customer_list.annotate(month_year=TruncMonth(F('transaction_date'))).values_list('month_year', flat=True).distinct()
+    unique_years = customer_list.annotate(month_year=TruncYear(F('transaction_date'))).values_list('month_year', flat=True).distinct()
+    unique_month_list = [i.month for i in unique_months]
+    unique_year_list = [i.year for i in unique_years]
+    tag = "Expense" #default expense tag
+    if request.method=='POST':
+        month = [request.POST.get('month_view')]
+        year = [request.POST.get('year_view')]
+        tag = request.POST.get('tag')
+        if tag=="Income":
+            customer_list = customer_list.filter(tag="Income")
+        elif tag=="Expense":
+            customer_list = customer_list.filter(tag="Expense")
+        if month == ['all']:
+            month = unique_month_list
+        if year == ['all']:
+            year = unique_year_list
+        transactions_list = customer_list.filter(Q(transaction_date__month__in=month)&Q(transaction_date__year__in=year)).order_by('transaction_date')
+        try:
+            income = round(transactions_list.filter(tag="income").aggregate(Sum("amount"))["amount__sum"],2)
+        except TypeError:
+            income = transactions_list.filter(tag="income").aggregate(Sum("amount"))["amount__sum"]
+        
+        try:
+            expense = round(transactions_list.filter(tag="expense").aggregate(Sum("amount"))["amount__sum"],2)
+        except TypeError:
+            expense = transactions_list.filter(tag="expense").aggregate(Sum("amount"))["amount__sum"]
+    else:
+        transactions_list = customer_list.all().order_by('transaction_date')
+        income = round(transactions_list.filter(tag="income").aggregate(Sum("amount"))["amount__sum"],2)
+        expense = round(transactions_list.filter(tag="expense").aggregate(Sum("amount"))["amount__sum"],2)
+    label = []
+    data = []
+    for c in transactions_list.values('category').annotate(total_price=Sum('amount')).order_by('category'):
+        print(c)
+        label.append(c['category'])
+        data.append(c['total_price'])
+    category_df = pd.DataFrame({
+        'category':label,
+        'total_amount':data,
+    })
+    category_df = category_df.sort_values(by=['total_amount'],ascending=False)
+    return render(request, "transcations/category_chart.html",
+                  {'labels':label, 'data':data,"unique_months":unique_month_list, "unique_years":unique_year_list,
+                   "selected_tag":tag,"Income":income,"Expense":expense,"category_df":category_df})
