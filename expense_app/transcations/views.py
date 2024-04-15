@@ -8,6 +8,8 @@ from django.db.models import F,Q, Sum
 from .forms import TransactionForm
 
 import pandas as pd
+import numpy as np
+import yfinance as yahooFinance
 
 def index(request):
     return HttpResponse("Hello, world. You're at the View index.")
@@ -151,3 +153,72 @@ def category_chart(request):
     return render(request, "transcations/category_chart.html",
                   {'labels':label, 'data':data,"unique_months":unique_month_list, "unique_years":unique_year_list,
                    "selected_tag":tag,"Income":income,"Expense":expense,"category_df":category_df})
+
+
+def finance_page(request):
+    user_loggedin = request.user.customer
+    customer_list = Balance.objects.filter(customer = user_loggedin)
+
+    unique_months = customer_list.annotate(month_year=TruncMonth(F('transaction_date'))).values_list('month_year', flat=True).distinct()
+    unique_years = customer_list.annotate(month_year=TruncYear(F('transaction_date'))).values_list('month_year', flat=True).distinct()
+    unique_month_list = [i.month for i in unique_months]
+    unique_year_list = [i.year for i in unique_years]
+    if request.method=='POST':
+        month = [request.POST.get('month_view')]
+        year = [request.POST.get('year_view')]
+        if month == ['all']:
+            month = unique_month_list
+        if year == ['all']:
+            year = unique_year_list
+        transactions_list = customer_list.filter(Q(transaction_date__month__in=month)&Q(transaction_date__year__in=year)).order_by('transaction_date')
+    else:
+        transactions_list = customer_list.all().order_by('transaction_date')
+    
+    try:
+        income = round(transactions_list.filter(tag="income").aggregate(Sum("amount"))["amount__sum"],2)
+    except TypeError:
+        income = transactions_list.filter(tag="income").aggregate(Sum("amount"))["amount__sum"]
+    
+    try:
+        expense = round(transactions_list.filter(tag="expense").aggregate(Sum("amount"))["amount__sum"],2)
+    except TypeError:
+        expense = transactions_list.filter(tag="expense").aggregate(Sum("amount"))["amount__sum"]
+    try:
+        savings = round(income - expense,2)
+    except TypeError:
+        savings = 0
+    if savings>0:
+        tag = "positive"
+    else: 
+        tag = "negative"
+    stocks_df = get_share_prices()
+    stocks_df['earnings'] = (stocks_df['return_yearly']/100) * (abs(savings) *0.1)
+    stocks_df['earnings'] = stocks_df['earnings'].round(2)
+    if tag == "positive":
+        stocks_df['total_saving'] = abs(savings)+stocks_df['earnings']
+    else:
+        stocks_df['total_saving'] = stocks_df['earnings']
+    stocks_df['total_saving'] = stocks_df['total_saving'].round(2)
+    return render(request, "transcations/finance_page.html",
+                  {"unique_months":unique_month_list, "unique_years":unique_year_list,
+                   "income":income,"expense":expense,"savings":savings, "stocks_df":stocks_df,"tag":tag,})
+
+
+def get_share_prices():
+    symbols = ['^GSPC','^IXIC','META','AMZN','GOOG','FBGRX']
+    return_daily, return_monthly ,return_yearly = [], [], []
+    for symbol in symbols:
+        GetInformation = yahooFinance.Ticker(symbol)
+        share = GetInformation.history(period="10y")
+        return_daily.append(share['Close'].pct_change().mean())
+        return_monthly.append(share['Close'].resample('M').ffill().pct_change().mean())
+        return_yearly.append(round(share['Close'].resample('Y').ffill().pct_change().mean()*100,2))
+    
+    share_name = ['S&P500','NASDAQ']+symbols[2:]
+    stock_df = pd.DataFrame({
+        'share_name':share_name,
+        # 'return_daily':return_daily,
+        # 'return_monthly':return_monthly,
+        'return_yearly':return_yearly,
+    })   
+    return stock_df
