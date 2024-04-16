@@ -21,12 +21,12 @@
     },
     {"tag": "options",
      "patterns": ["How you could help me?", "What you can do?", "What help you provide?", "How you can be helpful?", "What support is offered"],
-     "responses": ["I can guide you through the SMartSpend Application and what it does"],
+     "responses": ["I can guide you through the SmartSpend Application and what it does"],
      "context": [""]
     },
     {"tag": "CustomerCare",
      "patterns": ["Customer Care", "Get me to customer care", "Contact Number"], 
-     "responses": ["Please contact customer support"],
+     "responses": ["Please contact customer support at smartspend@gmail.com"],
      "context": [""] 
     }
 ]
