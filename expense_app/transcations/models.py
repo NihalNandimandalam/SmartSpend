@@ -7,6 +7,17 @@ class Customer(models.Model):
     class Meta:
         db_table='customer'
 
+class Statements(models.Model):
+    customer = models.ForeignKey(Customer, null=True, on_delete=models.SET_NULL)
+    monthly_statement = models.FileField(upload_to='documents/' , null=True)
+    def save(self, *args, **kwargs):
+        # Append customer_id to the document name
+        print(self.customer)
+        filename = f"{self.monthly_statement.name}_{self.customer_id}"
+        self.monthly_statement.name = filename
+        super().save(*args, **kwargs)
+    class Meta:
+        db_table='statements'
 
 class Balance(models.Model):
     CATEGORY = (

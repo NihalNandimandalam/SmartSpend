@@ -5,7 +5,7 @@ from django.contrib import messages
 from .models import Balance, Statements
 from django.db.models.functions import TruncMonth,TruncYear
 from django.db.models import F,Q, Sum
-from .forms import TransactionForm
+from .forms import TransactionForm, UploadFileForm
 
 import pandas as pd
 import numpy as np
@@ -155,6 +155,19 @@ def category_chart(request):
                    "selected_tag":tag,"Income":income,"Expense":expense,"category_df":category_df})
 
 
+def upload_page(request):
+    if request.method=="POST":
+        form = UploadFileForm(request.POST, request.FILES)
+        user_loggedin = request.user.customer
+        if form.is_valid():
+            form.instance.customer = request.user.customer
+            form.save()
+            return redirect('display')
+    else:
+        form = UploadFileForm()
+    return render(request,'transcations/upload.html',{"form":form})
+
+
 def finance_page(request):
     user_loggedin = request.user.customer
     customer_list = Balance.objects.filter(customer = user_loggedin)
@@ -204,6 +217,24 @@ def finance_page(request):
                    "income":income,"expense":expense,"savings":savings, "stocks_df":stocks_df,"tag":tag,})
 
 
+def loan_page(request):
+    if request.method == "POST":
+        loan_amount = int(request.POST.get('loan_amount'))
+        annual_interest_rate = int(request.POST.get('annual_interest_rate'))
+        loan_term_years = int(request.POST.get('loan_term_years'))
+        monthly_prepayment = int(request.POST.get('monthly_prepayment'))
+
+        loan_term_months = loan_term_years * 12
+        schedule, summary = calculate_loan_schedule(loan_amount, annual_interest_rate, loan_term_months, monthly_prepayment)
+        return render(request, "transcations/loan_page.html",
+                      {"schedule":pd.DataFrame(schedule),"summary":summary,"loan_amount":loan_amount, 
+                       "annual_interest_rate":annual_interest_rate, "loan_term_years":loan_term_years, 
+                       "monthly_prepayment":monthly_prepayment
+        })
+    else:
+        return render(request, "transcations/loan_page.html",{})
+
+
 def get_share_prices():
     symbols = ['^GSPC','^IXIC','META','AMZN','GOOG','FBGRX']
     return_daily, return_monthly ,return_yearly = [], [], []
@@ -222,3 +253,51 @@ def get_share_prices():
         'return_yearly':return_yearly,
     })   
     return stock_df
+
+
+def calculate_loan_schedule(loan_amount, annual_interest_rate, loan_term_months, monthly_prepayment):
+    monthly_interest_rate = annual_interest_rate / 12 / 100
+    monthly_payment = loan_amount * (monthly_interest_rate * (1 + monthly_interest_rate) ** loan_term_months) / (
+            (1 + monthly_interest_rate) ** loan_term_months - 1)
+
+    schedule = []
+    remaining_balance = loan_amount
+
+    original_loan_amount = loan_amount
+    original_loan_term_months = loan_term_months
+
+    for month in range(1, loan_term_months + 1):
+        interest_payment = remaining_balance * monthly_interest_rate
+        principal_payment = monthly_payment - interest_payment
+
+        if month <= 8 * 12:  # Apply prepayments only for the first 5 years
+            remaining_balance -= (monthly_payment + monthly_prepayment - interest_payment)
+        else:
+            remaining_balance -= (monthly_payment - interest_payment)
+
+        if remaining_balance <= 0:
+            # Loan is fully paid, no need to continue calculating the schedule
+            loan_term_months = month
+            break
+
+        schedule.append({
+            'Month': month,
+            'Monthly Payment': np.around(monthly_payment,2),
+            'Interest Payment': np.around(interest_payment,2),
+            'Principal Payment': np.around(principal_payment,2),
+            'Prepayment': np.around(monthly_prepayment,2) if month <= 8 * 12 else 0,
+            'Remaining Balance': max(0, np.around(remaining_balance,2))  # Ensure balance doesn't go negative
+        })
+
+    # Calculate total interest savings and total tenure reduced
+    original_interest = (monthly_payment * original_loan_term_months) - original_loan_amount
+    new_interest = (monthly_payment * loan_term_months) - loan_amount
+    interest_savings = original_interest - new_interest
+    tenure_reduced_months = original_loan_term_months - loan_term_months
+
+    summary = {
+        'Total Interest Savings': round(interest_savings,2),
+        'Total Tenure Reduced (months)': tenure_reduced_months
+    }
+
+    return schedule, summary
