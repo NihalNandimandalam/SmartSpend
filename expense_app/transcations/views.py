@@ -5,7 +5,10 @@ from django.contrib import messages
 from .models import Balance, Statements
 from django.db.models.functions import TruncMonth,TruncYear
 from django.db.models import F,Q, Sum
-from .forms import TransactionForm, UploadFileForm
+from .forms import TransactionForm, CreateUserForm, UploadFileForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from .decorators import unauthenticated_user, allowed_users, customer_only
 
 import pandas as pd
 import numpy as np
@@ -14,6 +17,46 @@ import yfinance as yahooFinance
 def index(request):
     return HttpResponse("Hello, world. You're at the View index.")
 
+
+@unauthenticated_user
+def login_page(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(request,username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('display')
+        else:
+            messages.info(request, "Username or Password is incorrect.")
+            return render(request, "transcations/login.html",{})
+        
+    return render(request, "transcations/login.html",{})
+
+def logoutUser(request):
+    logout(request)
+    return redirect('login')
+
+
+@unauthenticated_user
+def register_page(request):
+    form = CreateUserForm()
+    if request.method == "POST":
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            user = form.cleaned_data.get('username')
+            messages.success(request, "Account created for "+ user)
+            return redirect('login')
+    return render(request, "transcations/register.html",{"form":form})
+
+
+def user_page(request):
+    return render(request, 'transcations/user.html',{})
+
+@login_required(login_url='login')
+@customer_only
 def display(request):  
     # dateFilter = TransactionFilter(request.GET, queryset=transactions_list)
     # transactions_list = dateFilter.qs
@@ -73,6 +116,9 @@ def display(request):
                     {"transactions_list":transactions_list,"unique_months":unique_month_list, "unique_years":unique_year_list,
                      "income":income, "expense":expense,"category_list":category_list})
 
+
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['customer'])
 def new_transaction(request):
     form = TransactionForm()
     display_text = "Add new transaction"
@@ -85,6 +131,9 @@ def new_transaction(request):
             return redirect('display')
     return render(request,"transcations/new_transaction.html",{"form":form, "display_text":display_text})
 
+
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['customer'])
 def update_transaction(request, pk):
     transaction = Balance.objects.get(transaction_id=pk)
     form = TransactionForm(instance=transaction)
@@ -97,6 +146,8 @@ def update_transaction(request, pk):
     return render(request,"transcations/new_transaction.html",{"form":form, "display_text":display_text})
 
 
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['customer'])
 def delete_transaction(request, pk):
     transaction = Balance.objects.get(transaction_id=pk)
     if request.method =="POST":
@@ -104,6 +155,9 @@ def delete_transaction(request, pk):
         return redirect('display')
     return render(request, "transcations/delete.html",{"transaction":transaction})
 
+
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['customer'])
 def category_chart(request):
     user_loggedin = request.user.customer
     customer_list = Balance.objects.filter(customer = user_loggedin)

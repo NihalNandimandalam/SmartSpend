@@ -1,9 +1,14 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
     path("display", views.display, name='display'),
+    path("login", views.login_page, name='login'),
+    path("logout", views.logoutUser, name='logout'),
+    path("register", views.register_page, name='register'),
+    path("user", views.user_page, name='user_page'),
     path("category_chart", views.category_chart, name='category_chart'),
     path("finance_page", views.finance_page, name='finance_page'),
     path("loan_page", views.loan_page, name='loan_page'),
