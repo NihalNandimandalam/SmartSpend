@@ -38,7 +38,7 @@ html {
 }
 
 body {
-     color: #666666;
+     color: #000000;
      font-size: 14px;
      font-family: Poppins;
      line-height: 1.80857;
@@ -69,7 +69,7 @@ h6 {
      padding: 0 0 10px 0;
      font-weight: normal;
      line-height: normal;
-     color: #111111;
+     color: #000000;
      margin: 0
 }
 
@@ -339,7 +339,7 @@ button {
     background-size: 100%;
 }
 
-.services_taital {
+.about_text {
     width: 100%;
     float: left;
     font-size: 34px;
@@ -347,28 +347,6 @@ button {
     padding-top: 10px;
     text-transform: uppercase;
     font-weight: bold;
-}
-.services_taital::after {
-    content: '';
-    background-color: #ff5a58;
-    position: absolute;
-    width: 60px;
-    text-align: center;
-    right: initial;
-    top: 0px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    height: 7px;
-    left: 0;
-    border-radius: 100px;
-}
-.services_text {
-    width: 90%;
-    float: left;
-    font-size: 16px;
-    color: #060606;
-    margin-left: 0px;
 }
 .moremore_bt {
     width: 170px;
@@ -389,7 +367,7 @@ button {
     border-radius: 40px;
 }
 .moremore_bt a:hover {
-    color: #181818;
+    color: #4aafff;    
     border: 2px solid #ff5a58;
 }
 .image_1{
