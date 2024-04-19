@@ -67,7 +67,7 @@
         }
 </style>
 <div class="header">
-    <a href="#default" class="logo">Expense Manager</a>
+    <a href="#default" class="logo">Expese Manager</a>
     <div class="header-right">
       <a href="{% url 'display' %}">Home</a>
       <a class="active" href="{% url 'category_chart' %}">Analysis</a>
@@ -79,13 +79,13 @@
 <form method="POST">
     {% csrf_token %}
     <select name="month_view">
-      <option value="all">Month</option>
+      <option value="all">All</option>
         {% for month in unique_months %}
             <option value="{{month}}" {% if month.selected %} selected {%endif%}>{{month}}</option>
         {% endfor %}  
     </select>
     <select name="year_view">
-      <option value="all">Year</option>
+      <option value="all">All</option>
         {% for year in unique_years %}
             {% if year == selected_year %}
             <option value="{{year}}" selected>{{year}}</option>
