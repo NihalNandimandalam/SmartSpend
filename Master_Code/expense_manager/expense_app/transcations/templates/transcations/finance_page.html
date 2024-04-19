@@ -67,7 +67,7 @@
     }
 </style>
 <div class="header">
-    <div class="logo"><a href="index.html"><img src="images/logo.png"></a></div>
+    <div class="logo"><a href="{% url 'index' %}"><img src="/static/images/logo.png"></a></div>
     <a href="">Hello, {{request.user}}</a>
     <div class="header-right">
       <a  href="{% url 'display' %}">Home</a>
