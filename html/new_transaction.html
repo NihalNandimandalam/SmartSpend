@@ -1,9 +1,0 @@
-<h1>{{display_text}}</h1>
-
-<form action="" method="POST">
-    {% csrf_token %}
-    {{form}}
-
-    <a href="{% url 'display' %}">Cancel</a>
-    <input type="submit" name="Submit">
-</form>
