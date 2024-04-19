@@ -74,7 +74,7 @@
 </head>
 <body>
     <div class="header">
-        <a href="{% url 'display' %}" class="logo">Expese Manager</a>
+        <a href="{% url 'display' %}" class="logo">Expense Manager</a>
         <a href="">Hello, {{request.user}}</a>
         <div class="header-right">
           <a class="active" href="{% url 'display' %}">Home</a>
@@ -89,25 +89,25 @@
     <form method="POST">
         {% csrf_token %}
         <select name="month_view">
-            <option value="all">All</option>
+            <option value="all">Month</option>
             {% for month in unique_months %}
                 <option value="{{month}}" {% if month|stringformat:"s" == selected_month %} selected {%endif%}>{{month}}</option>
             {% endfor %}
         </select>
         <select name="year_view">
-            <option value="all">All</option>
+            <option value="all">Year</option>
             {% for year in unique_years %}
                 <option value="{{year}}" {% if year|stringformat:"s" == selected_year %} selected {%endif%}>{{year}}</option>
             {% endfor %}
         </select>
         <select name="tag">
-            <option {%if selected_tag|stringformat:"s" == "all" %} selected {%endif%}>All</option>
+            <option {%if selected_tag|stringformat:"s" == "all" %} selected {%endif%}>Tag</option>
             <option {%if selected_tag|stringformat:"s" == "Expense" %} selected {%endif%}>Expense</option>
             <option {%if selected_tag|stringformat:"s" == "Income" %} selected {%endif%}>Income</option>
         </select>
         {% load custom_filters %}
         <select name="category">
-            <option value="all">All</option>
+            <option value="all">Category</option>
             {% for category in category_list %}
                 <option value="{{category}}" {% if category|to_list == selected_category %} selected {%endif%}>{{category}}</option>
             {% endfor %}
@@ -150,5 +150,3 @@
 </form>
 </body>
 </html>
-
-
